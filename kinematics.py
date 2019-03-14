@@ -35,7 +35,7 @@ def FK(q):
     return T0e
 
 # takes in EE position, returns joint positions array
-def IK(o):
+def IK(o, q):
     oX = o[0]
     oY = o[1]
     oZ = o[2]

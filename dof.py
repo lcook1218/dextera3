@@ -1,4 +1,5 @@
 import gpiozero
+import pigpio
 
 
 class DOF:
@@ -26,8 +27,9 @@ class ServoDOF(DOF):
     def set_position(self, position):
         if position >= self.minLimit and position <= self.maxLimit:
             self.servo.angle = position
-        else:
-            print('Position input exceeds limits')
+            return True
+        print('Position input exceeds limits')
+        return False
 
 
 class MotorDOF(DOF):
@@ -40,6 +42,6 @@ class MotorDOF(DOF):
             self.motor.forward(power)
         else:
             self.motor.backward(power*-1)
-            
+
     def stop(self):
         self.motor.forward(0)
