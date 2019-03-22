@@ -18,25 +18,29 @@ class DOF(object):
     def set_velocity(self, velocity):
         pass
 
-    def set_limits(self, min_limit, max_limit):  # TODO: fix this function / class
+    def set_limits(self, min_limit, max_limit):
         self.min_limit = min_limit
         self.max_limit = max_limit
         return
 
 
 class ServoDOF(DOF):
+    
+    pi = pigpio.pi()
+    pin = None
 
     def __init__(self, pin):
         super(ServoDOF, self).__init__()
-        self.servo = gpiozero.AngularServo(pin)
-        self.set_limits(-90, 90)
+        self.pin = pin
+        self.pi.set_mode(self.pin, pigpio.OUTPUT)
+        self.set_limits(1000, 2000)  # actual limits 500, 2500 (500 barrier for safety as suggested online)
         return
 
     def set_position(self, position):
         if self.min_limit <= position <= self.max_limit:
-            self.servo.angle = position
+            self.pi.set_servo_pulsewidth(self.pin, position)
             return True
-        print('Position input exceeds limits')
+        print('Position input exceeds limits ' + str(position))
         return False
 
 
@@ -46,6 +50,8 @@ class MotorDOF(DOF):  # TODO: implement limits (timer isn't a bad idea)
     pin_a = None
     pin_b = None
     FREQUENCY = 2000
+    HIGH = 1
+    LOW = 0
 
     def __init__(self, pin_a, pin_b):
         super(MotorDOF, self).__init__()
@@ -55,16 +61,25 @@ class MotorDOF(DOF):  # TODO: implement limits (timer isn't a bad idea)
         self.pi.set_mode(self.pin_b, pigpio.OUTPUT)
         return
 
-    def set_power(self, power):
+    def set_power(self, power):  # decide on stop or set_power(0)
         if power > 0:
-            self.pi.hardware_PWM(self.pin_a, self.FREQUENCY, power * 1000000)
-        else:
-            self.pi.hardware_PWM(self.pin_b, self.FREQUENCY, power * -1000000)
+            self.pi.hardware_PWM(18, self.FREQUENCY, power * 100000)  # TODO: REFACTOR TO PASS AS VARIABLE
+            self.pi.write(self.pin_a, self.HIGH)
+            self.pi.write(self.pin_b, self.LOW)
+            return
+        if power < 0:
+            self.pi.hardware_PWM(18, self.FREQUENCY, power * -1000000)
+            self.pi.write(self.pin_a, self.LOW)
+            self.pi.write(self.pin_b, self.HIGH)
+            return
+        if power == 0:
+            self.pi.hardware_PWM(18, 0, 0)
+            self.pi.write(self.pin_a, self.LOW)
+            self.pi.write(self.pin_b, self.LOW)
         return
 
     def stop(self):
-        self.pi.hardware_PWM(self.pin_a, 0, 0)
-        self.pi.hardware_PWM(self.pin_b, 0, 0)
+        self.set_power(0)
         return
 
 
@@ -76,7 +91,7 @@ class GripperDOF(MotorDOF):
     def open(self, power, sleep_time):
         self.set_power(power)
         time.sleep(sleep_time)
-        self.set_power(0)
+        self.stop()
         return
 
     def close(self, power):

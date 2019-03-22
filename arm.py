@@ -31,7 +31,7 @@ class Arm:
         self.wrist_pan = ServoDOF(26)
         self.gripper_1 = GripperDOF(22, 10)
         # self.gripper_2 = GripperDOF(x, x)
-        self.q = [0, 90, 0]
+        self.q = [0, 1500, 1500]  # TODO: CONVERT EVERYTHING TO THIS CRAZY NUMBERS SHIT
         self.full_set_position(self.q)
         self.o_curr = FK(self.q)
         return
@@ -110,7 +110,7 @@ class Arm:
         return
 
     def parse_relative_cmd(self, command):
-        new_relative_pos = command.split()[-2]  # value in mm or degrees to move
+        new_relative_pos = int(command.split()[-2])  # value in mm or degrees to move
         if 'move' in command:
             if self.MOVE_WORD in command:
                 # TODO: figure out with encoder
@@ -120,12 +120,14 @@ class Arm:
                 print('not yet implemented')
             return
 
-        new_relative_pos = math.radians(new_relative_pos)  # Other 2 need in radians
+        # new_relative_pos = math.radians(new_relative_pos)  # TODO: FIX THIS JUST FOR FK/IK... STORE Q IN DEGREES
         if 'rotate' in command:
             direction = 1 if self.ROTATE_WORD in command else -1
             new_relative_pos *= direction
+            print(self.q[self.ROTATE_MOTOR] + new_relative_pos)
             if self.wrist_rotate.set_position(self.q[self.ROTATE_MOTOR] + new_relative_pos):
                 self.q[self.ROTATE_MOTOR] += new_relative_pos
+            print(self.q)
             return
         if 'pan' in command:
             direction = 1 if self.PAN_WORD in command else -1
