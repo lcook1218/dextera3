@@ -1,5 +1,5 @@
 import gpiozero
-# import pigpio
+import pigpio
 import time
 
 
@@ -41,21 +41,30 @@ class ServoDOF(DOF):
 
 
 class MotorDOF(DOF):  # TODO: implement limits (timer isn't a bad idea)
-    
+
+    pi = pigpio.pi()
+    pin_a = None
+    pin_b = None
+    FREQUENCY = 2000
+
     def __init__(self, pin_a, pin_b):
         super(MotorDOF, self).__init__()
-        self.motor = gpiozero.Motor(pin_a, pin_b)
+        self.pin_a = pin_a
+        self.pin_b = pin_b
+        self.pi.set_mode(self.pin_a, pigpio.OUTPUT)
+        self.pi.set_mode(self.pin_b, pigpio.OUTPUT)
         return
 
     def set_power(self, power):
         if power > 0:
-            self.motor.forward(power)
+            self.pi.hardware_PWM(self.pin_a, self.FREQUENCY, power * 1000000)
         else:
-            self.motor.backward(power*-1)
+            self.pi.hardware_PWM(self.pin_b, self.FREQUENCY, power * -1000000)
         return
 
     def stop(self):
-        self.motor.forward(0)
+        self.pi.hardware_PWM(self.pin_a, 0, 0)
+        self.pi.hardware_PWM(self.pin_b, 0, 0)
         return
 
 
