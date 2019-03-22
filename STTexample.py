@@ -12,4 +12,3 @@ with sr.Microphone() as source:
         print ("UVE")
     except sr.RequestError as e:
         print("Request Error; {0}".format(e))
-

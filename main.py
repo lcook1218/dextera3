@@ -1,5 +1,5 @@
-import sys
-#import readline
+# import sys
+# import readline
 import speech_recognition as sr
 
 from arm import Arm

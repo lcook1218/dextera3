@@ -5,6 +5,7 @@ D0 = 60
 L = 125
 LG = 75
 
+
 # takes in joint positions array, returns homogenous transformation matrix to EE
 def FK(q):
     T1 = [[1, 0, 0, 0],
@@ -17,41 +18,43 @@ def FK(q):
           [0, 1, 0, q[0]],
           [0, 0, 0, 1]]
 
-    T3 = [[math.cos(q[1]+ (math.pi)/2), 0, math.sin(q[1]+ (math.pi)/2), 0],
-          [math.sin(q[1]+ (math.pi)/2), 0, -(math.cos(q[1]+ (math.pi)/2)), 0],
+    T3 = [[math.cos(q[1] + math.pi/2), 0, math.sin(q[1] + math.pi/2), 0],
+          [math.sin(q[1] + math.pi/2), 0, -(math.cos(q[1] + math.pi/2)), 0],
           [0, 1, 0, L],
           [0, 0, 0, 1]]
 
-    T4 = [[math.cos(q[2]+ (math.pi)/2), -(math.sin(q[2]+ (math.pi)/2)), 0, LG*math.cos(q[2]+ (math.pi)/2)],
-          [math.sin(q[2]+ (math.pi)/2),   math.cos(q[2]+ (math.pi)/2),  0, LG*math.sin(q[2]+ (math.pi)/2)],
+    T4 = [[math.cos(q[2] + math.pi/2), -(math.sin(q[2] + math.pi/2)), 0, LG*math.cos(q[2] + math.pi/2)],
+          [math.sin(q[2] + math.pi/2),   math.cos(q[2] + math.pi/2),  0, LG*math.sin(q[2] + math.pi/2)],
           [0, 0, 1, 0],
           [0, 0, 0, 1]]
 
-    #T0e = T1*T2*T3*T4
+    # T0e = T1*T2*T3*T4
     T02 = numpy.matmul(T1,T2)
     T03 = numpy.matmul(T02,T3)
     T0e = numpy.matmul(T03,T4)
 
     return T0e
 
+
 # takes in EE position, returns joint positions array
-def IK(o, q):
+def IK(o):
+    q = []
     oX = o[0]
     oY = o[1]
     oZ = o[2]
 
-    q[2] = math.asin((oY+L)/LG) - (math.pi)/2
+    q[2] = math.asin((oY+L)/LG) - math.pi/2
 
     a = math.abs(q[2])
 
-    while(a > math.pi):
+    while a > math.pi:
         a = a - math.pi
 
-    if(a > -0.001 and a < 0.001):
+    if -0.001 < a < 0.001:
         q[1] = 0
     else:
-        q[1] = math.acos(oX/(LG*math.cos(q[2]+(math.pi)/2))) - (math.pi)/2
-    q[0] = oZ - D0 - LG*math.sin(q[1]+(math.pi)/2)*math.cos(q[2]+(math.pi)/2)
+        q[1] = math.acos(oX/(LG*math.cos(q[2] +math.pi/2))) - math.pi/2
+    q[0] = oZ - D0 - LG*math.sin(q[1] +math.pi/2)*math.cos(q[2] +math.pi/2)
 
     return q
 
