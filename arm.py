@@ -1,4 +1,4 @@
-import math
+# import math
 # from word2number import w2n
 
 from dof import MotorDOF, ServoDOF, GripperDOF
@@ -9,7 +9,7 @@ class Arm:
 
     q = []  # joint angle positions
     o_curr = []  # x, y, z in space
-    prev_cmd = ''
+    # prev_cmd = ''  # what is the point of this?
 
     GRIPPER_TIME = 5  # gripper wait time to open
     GRIPPER_POWER = -0.1  # Needs to be negative based on current motor config
@@ -19,6 +19,10 @@ class Arm:
     ROTATE_MOTOR = 1
     PAN_MOTOR = 2
 
+    VERTICAL_PWM = 18
+    GRIPPER_1_PWM = 23
+    # GRIPPER_2_PWM = X
+
     MOVE_WORD = 'up'
     ROTATE_WORD = 'in'
     PAN_WORD = 'up'
@@ -26,12 +30,12 @@ class Arm:
     gripper_closed = [True, True]  # gripper 1 and gripper 2 status (closed is true)
 
     def __init__(self):
-        self.vertical = MotorDOF(17, 11)
+        self.vertical = MotorDOF(17, 11, self.VERTICAL_PWM)
         self.wrist_rotate = ServoDOF(19)
         self.wrist_pan = ServoDOF(26)
-        self.gripper_1 = GripperDOF(22, 10)
-        # self.gripper_2 = GripperDOF(x, x)
-        self.q = [0, 1500, 1500]  # TODO: CONVERT EVERYTHING TO THIS CRAZY NUMBERS SHIT
+        self.gripper_1 = GripperDOF(22, 10, self.GRIPPER_1_PWM)
+        # self.gripper_2 = GripperDOF(x, x, self.GRIPPER_2_PWM)
+        self.q = [0, 1500, 1500]  # TODO: CONVERT EVERYTHING TO THIS CRAZY NUMBERS SHIT (STORE IN DEGREES)
         self.full_set_position(self.q)
         self.o_curr = FK(self.q)
         return
@@ -44,7 +48,7 @@ class Arm:
         # self.gripper_2.close(self.GRIPPER_POWER)
         return
 
-# *** # TODO: NEED TO ADD IN CATCHING ERRORS HERE, and dof.py ***
+# *** TODO: NEED TO ADD IN CATCHING ERRORS HERE, and dof.py ***
 
     def parse_text(self, command):
         if command is None:
