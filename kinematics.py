@@ -1,5 +1,6 @@
-import numpy
 import math
+
+import numpy
 
 D0 = 60
 L = 125
@@ -7,7 +8,9 @@ LG = 75
 
 
 # takes in joint positions array, returns homogenous transformation matrix to EE
-def FK(q):
+def FK(q_array):
+    q = [math.radians(q_array[0]), math.radians(q_array[1]), math.radians(q_array[2])]
+
     T1 = [[1, 0, 0, 0],
           [0, 1, 0, 0],
           [0, 0, 1, D0],
@@ -45,7 +48,7 @@ def IK(o):
 
     q[2] = math.asin((oY+L)/LG) - math.pi/2
 
-    a = math.abs(q[2])
+    a = math.fabs(q[2])
 
     while a > math.pi:
         a = a - math.pi
@@ -56,6 +59,7 @@ def IK(o):
         q[1] = math.acos(oX/(LG*math.cos(q[2] +math.pi/2))) - math.pi/2
     q[0] = oZ - D0 - LG*math.sin(q[1] +math.pi/2)*math.cos(q[2] +math.pi/2)
 
+    q = [math.degrees(q[0]), math.degrees(q[1]), math.degrees(q[2])]
     return q
 
 
