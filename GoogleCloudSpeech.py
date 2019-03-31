@@ -7,6 +7,10 @@ Example usage:
 """
 
 # [START speech_transcribe_streaming_mic]
+
+
+### export GOOGLE_APPLICATION_CREDENTIALS="[PATH]"
+# MAKE SURE TO SET THE CREDENTIALS BEFORE STARTING
 from __future__ import division
 
 import re
