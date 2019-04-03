@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from dof import MotorDOF, ServoDOF, GripperDOF
 from kinematics import FK, IK
 
