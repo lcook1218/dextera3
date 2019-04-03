@@ -58,11 +58,11 @@ class Arm:
 # *** TODO: NEED TO ADD IN CATCHING ERRORS HERE, and dof.py ***
 
     def parse_text(self, command):
-        if command is None:
+        if command is None or command is '':
             print('Sorry, I did not hear you')
         else:
             command = command.lower()
-            command = self.__remove_symbols(command)
+            command = Arm.__remove_symbols_and_name(command)
             if 'start' in command or 'stop' in command:
                 self.__parse_motion_cmd(command)
             elif 'open' in command or 'close' in command:
@@ -75,10 +75,13 @@ class Arm:
                 self.__parse_relative_cmd(command)
         return
 
-    def __remove_symbols(self, command):
-        return command.replace('°', ' degrees')  # NOTE: If deg sign not in, it does nothing
+    @staticmethod
+    def __remove_symbols_and_name(cmd):
+        cmd = cmd.replace('°', ' degrees')  # NOTE: If deg sign not in, it does nothing
+        cmd = cmd.replace('Jimmy', '')  # Removes the ending keyword
+        return cmd
 
-    def __parse_motion_cmd(self, command):
+    def __parse_motion_cmd(self, command):  # TODO: IMPLEMENT ALL MOVE WORDS TO AVOID MISCHARICTARIZATION
         if 'start' in command:
             if 'moving' in command:
                 direction = 1 if self.MOVE_WORD in command else -1

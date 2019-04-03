@@ -135,9 +135,11 @@ def listen_print_loop(responses):
 
             # Exit recognition if any of the transcribed phrases could be
             # one of our keywords.
-            if re.search(r'\b(decks|quit)\b', transcript, re.I):
-                print('COMMAND UNDERSTOOD')
-                break
 
-            num_chars_printed = 0
+            if re.search(r'\b(Jimmy|quit)\b', transcript, re.I):
+                print('Properly Formatted Command')
+            else:
+                transcript = ''  # Blank is poorly formatted command
+            break
+
     return transcript
