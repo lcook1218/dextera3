@@ -15,6 +15,9 @@ class Arm:
     ROTATE_MOTOR = 1
     PAN_MOTOR = 2
 
+    START_Q = [50, 0, 0]  # TODO: NOTE - 50 is just a placeholder
+    OFF_Q = [0, -90, -90]  # TODO: SET TO VALUES WE WANT
+
     ROTATE_FACTOR = 1  # how much the servo rotates by
 
     VERTICAL_PWM = 18
@@ -33,7 +36,7 @@ class Arm:
         self.pan = ServoDOF(26)
         self.gripper_1 = GripperDOF(22, 10, self.GRIPPER_1_PWM)
         # self.gripper_2 = GripperDOF(x, x, self.GRIPPER_2_PWM)
-        self.q = [50, 0, 0]  # NOTE - 50 is just a placeholder
+        self.q = self.START_Q
         self.__full_set_position(self.q)
         self.o_curr = FK(self.q)
         return
@@ -46,8 +49,8 @@ class Arm:
         # self.gripper_2.close(self.GRIPPER_POWER)
         return
 
-    def __update_q(self, vertical, rotate, pan):
-        self.q = [vertical, rotate, pan]
+    def __update_q(self, arr):
+        self.q = arr
         return
 
 # *** TODO: NEED TO ADD IN CATCHING ERRORS HERE, and dof.py ***
@@ -57,15 +60,21 @@ class Arm:
             print('Sorry, I did not hear you')
         else:
             command = command.lower()
+            command = self.__remove_symbols(command)
             if 'start' in command or 'stop' in command:
                 self.__parse_motion_cmd(command)
             elif 'open' in command or 'close' in command:
                 self.__parse_gripper_cmd(command)
             elif 'go to' in command:
                 self.__parse_location_cmd(command)
-            else:
+            elif 'power' in command:
+                self.__parse_power_cmd(command)
+            else:  # finite movement "move up 10 inches"
                 self.__parse_relative_cmd(command)
         return
+
+    def __remove_symbols(self, command):
+        return command.replace('°', ' degrees')  # NOTE: If deg sign not in, it does nothing
 
     def __parse_motion_cmd(self, command):
         if 'start' in command:
@@ -86,7 +95,7 @@ class Arm:
             self.vertical.stop()
             self.rotate.stop()
             self.pan.stop()
-            self.__update_q(self.vertical.get_position(), self.rotate.get_position(), self.pan.get_position())
+            self.__update_q([self.vertical.get_position(), self.rotate.get_position(), self.pan.get_position()])
         return
 
     def __parse_gripper_cmd(self, command):  # 'Open gripper x'
@@ -131,4 +140,9 @@ class Arm:
             if self.pan.set_position(self.q[self.PAN_MOTOR] + new_relative_pos):
                 self.q[self.PAN_MOTOR] += new_relative_pos
             return
+        return
+
+    def __parse_power_cmd(self, command):
+        self.__update_q(self.START_Q) if 'on' in command else self.__update_q(self.OFF_Q)
+        self.__full_set_position(self.q)
         return

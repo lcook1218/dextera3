@@ -16,10 +16,10 @@ from __future__ import division
 import re
 import sys
 
+import pyaudio
 from google.cloud import speech
 from google.cloud.speech import enums
 from google.cloud.speech import types
-import pyaudio
 from six.moves import queue
 
 # Audio recording parameters
@@ -104,6 +104,7 @@ def listen_print_loop(responses):
     the next result to overwrite it, until the response is a final one. For the
     final one, print a newline to preserve the finalized transcription.
     """
+    transcript = ''
     num_chars_printed = 0
     for response in responses:
         if not response.results:
@@ -118,6 +119,7 @@ def listen_print_loop(responses):
 
         # Display the transcription of the top alternative.
         transcript = result.alternatives[0].transcript
+        # TODO: this transcript variable is the one we need to send to arm
 
         # Display interim results, but with a carriage return at the end of the
         # line, so subsequent lines will overwrite them.
@@ -137,11 +139,12 @@ def listen_print_loop(responses):
 
             # Exit recognition if any of the transcribed phrases could be
             # one of our keywords.
-            if re.search(r'\b(exit|quit)\b', transcript, re.I):
+            if re.search(r'\b(decks|quit)\b', transcript, re.I):
                 print('Exiting..')
                 break
 
             num_chars_printed = 0
+    return transcript
 
 
 def main():
@@ -153,9 +156,13 @@ def main():
     config = types.RecognitionConfig(
         encoding=enums.RecognitionConfig.AudioEncoding.LINEAR16,
         sample_rate_hertz=RATE,
-        language_code=language_code)
+        language_code=language_code,
+        model='command_and_search',  # TODO: TEST TO SEE IF THIS MAKES IT BETTER
+        speech_contexts=[speech.types.SpeechContext(
+            phrases=['move up', 'degrees', 'decks'])])  # TODO: WRITE IN ALL THE PHRASES
     streaming_config = types.StreamingRecognitionConfig(
         config=config,
+        single_utterance=True,
         interim_results=True)
 
     with MicrophoneStream(RATE, CHUNK) as stream:
@@ -166,7 +173,8 @@ def main():
         responses = client.streaming_recognize(streaming_config, requests)
 
         # Now, put the transcription responses to use.
-        listen_print_loop(responses)
+        transcript = listen_print_loop(responses)
+        print(transcript + 'YOOO')
 
 
 if __name__ == '__main__':
